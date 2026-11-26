@@ -130,38 +130,52 @@ const sfx = {
 };
 
 // ===== ごほうび（花・星が散る） =====
+// 動きは「実際に過ぎた時間」で進める。iPhone の描画が追いつかなくてもスローにならず、決めた秒数で必ず終わる。
+// 絵文字は1回だけ小さな画像にしておき、毎回は画像を貼るだけにする（絵文字を毎回描くのは重い）。
 const FX = {
-  parts: [], running: false,
+  parts: [], running: false, sprites: {},
   init() { this.cv = $('#fx'); this.ctx = this.cv.getContext('2d'); this.size(); addEventListener('resize', () => this.size()); },
   size() { this.d = Math.min(devicePixelRatio || 1, 2); this.cv.width = innerWidth * this.d; this.cv.height = innerHeight * this.d; },
+  sprite(ch, size) {
+    const s = Math.max(16, Math.round(size / 8) * 8), key = ch + s;
+    if (this.sprites[key]) return this.sprites[key];
+    const px = Math.ceil(s * 1.3 * this.d), cv = document.createElement('canvas');
+    cv.width = cv.height = px;
+    const c = cv.getContext('2d');
+    c.scale(this.d, this.d); c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = `${s}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+    c.fillText(ch, s * 0.65, s * 0.7);
+    return (this.sprites[key] = { cv, half: s * 0.65 });
+  },
   add(p) {
+    p.sp = this.sprite(p.ch, p.size); p.max = p.life;
     this.parts.push(p);
     if (!this.running) { this.running = true; this.last = performance.now(); requestAnimationFrame(t => this.loop(t)); }
   },
   loop(t) {
-    const dt = Math.min(0.05, (t - this.last) / 1000); this.last = t;
+    const real = Math.max(0, (t - this.last) / 1000); this.last = t;
+    const dt = Math.min(0.1, real);                 // 動きの計算用（大きく飛ばないように）
     const c = this.ctx;
     c.setTransform(this.d, 0, 0, this.d, 0, 0);
     c.clearRect(0, 0, innerWidth, innerHeight);
-    c.textAlign = 'center'; c.textBaseline = 'middle';
     this.parts = this.parts.filter(p => {
-      p.life -= dt;
+      p.life -= real;                               // 寿命は実際の時間で減らす
       if (p.life <= 0 || p.y > innerHeight + 80) return false;
-      p.vy += p.g * dt; p.vx *= p.drag || 1;
+      p.vy += p.g * dt; if (p.drag) p.vx *= p.drag;
       p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
-      if (p.sway) { p.t = (p.t || 0) + dt; p.x += Math.sin(p.t * p.sway) * 0.8; }
-      c.save();
-      c.globalAlpha = Math.min(1, p.life / 0.5);
+      if (p.sway) { p.t = (p.t || 0) + dt; p.x += Math.sin(p.t * p.sway) * 1.2; }
+      c.globalAlpha = Math.min(1, p.life / 0.35);
+      c.setTransform(this.d, 0, 0, this.d, 0, 0);
       c.translate(p.x, p.y); c.rotate(p.rot);
-      c.font = `${p.size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
-      c.fillText(p.ch, 0, 0);
-      c.restore();
+      c.drawImage(p.sp.cv, -p.sp.half, -p.sp.half, p.sp.half * 2, p.sp.half * 2);
       return true;
     });
+    c.globalAlpha = 1;
     if (this.parts.length) requestAnimationFrame(tt => this.loop(tt));
-    else { this.running = false; c.clearRect(0, 0, innerWidth, innerHeight); }
+    else { this.running = false; c.setTransform(this.d, 0, 0, this.d, 0, 0); c.clearRect(0, 0, innerWidth, innerHeight); }
   },
 };
+window.__fx = FX;   // 動作確認用
 function burst(x = innerWidth / 2, y = innerHeight / 2, n = 16) {
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2, s = 160 + Math.random() * 280;
@@ -172,25 +186,27 @@ function burst(x = innerWidth / 2, y = innerHeight / 2, n = 16) {
 function celebrate() {
   sfx.fanfare();
   const chars = ['🌸', '⭐', '💖', '🌷', '✨', '💜', '🌟', '🦄', '🌈', '🎀', '💐', '🩷'];
-  // 上から降ってくる（速さは vy と g。大きくすると速くなる）
-  for (let i = 0; i < 90; i++) {
-    FX.add({ x: Math.random() * innerWidth, y: -40 - Math.random() * innerHeight * .6,
-             vx: (Math.random() - .5) * 120, vy: 420 + Math.random() * 300, g: 500,
-             rot: Math.random() * 6, vr: (Math.random() - .5) * 6, sway: 3 + Math.random() * 4,
-             life: 2.6, size: 28 + rnd(26), ch: pick(chars) });
+  // 全体で約2秒で終わる（life が秒数。速さは vy と g、大きくすると速くなる）
+  const H = innerHeight;
+  // 上から降ってくる：画面の高さに合わせた速さで、1.2〜1.6秒ほどで下まで落ちる
+  for (let i = 0; i < 80; i++) {
+    FX.add({ x: Math.random() * innerWidth, y: -40 - Math.random() * H * .35,
+             vx: (Math.random() - .5) * 140, vy: H * (0.7 + Math.random() * 0.4), g: H * 0.9,
+             rot: Math.random() * 6, vr: (Math.random() - .5) * 7, sway: 4 + Math.random() * 4,
+             life: 2.0, size: 28 + rnd(26), ch: pick(chars) });
   }
   // 左右の下からも、ぽーんと吹き上がる
   [0.08, 0.92].forEach(fx => {
-    for (let i = 0; i < 22; i++) {
-      const a = -Math.PI / 2 + (fx < .5 ? .35 : -.35) + (Math.random() - .5) * .7, s = 700 + Math.random() * 450;
-      FX.add({ x: innerWidth * fx, y: innerHeight + 10, vx: Math.cos(a) * s, vy: Math.sin(a) * s, g: 1100, rot: 0,
-               vr: (Math.random() - .5) * 10, life: 2.2, size: 26 + rnd(20), ch: pick(chars) });
+    for (let i = 0; i < 20; i++) {
+      const a = -Math.PI / 2 + (fx < .5 ? .35 : -.35) + (Math.random() - .5) * .7, s = H * (1.3 + Math.random() * .5);
+      FX.add({ x: innerWidth * fx, y: H + 10, vx: Math.cos(a) * s, vy: Math.sin(a) * s, g: H * 2.2, rot: 0,
+               vr: (Math.random() - .5) * 10, life: 1.6, size: 26 + rnd(20), ch: pick(chars) });
     }
   });
   const ct = $('#cheerText');
   ct.textContent = pick(['🌸 はなまる 🌸', '⭐ すごーい ⭐', '💖 かんぺき 💖', '🦄 やったね 🦄']);
   const ch = $('#cheer'); ch.classList.remove('on'); void ch.offsetWidth; ch.classList.add('on');
-  clearTimeout(celebrate.tm); celebrate.tm = setTimeout(() => ch.classList.remove('on'), 1900);
+  clearTimeout(celebrate.tm); celebrate.tm = setTimeout(() => ch.classList.remove('on'), 1700);
 }
 
 // ===== 星とハート =====

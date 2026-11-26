@@ -253,7 +253,7 @@ h1 {
   font-size: clamp(44px, 13vmin, 120px); font-weight: 800; color: #fff; white-space: nowrap;
   -webkit-text-stroke: 3px #c27dff; paint-order: stroke fill;
   text-shadow: 0 6px 0 #ff9fd2aa, 0 0 30px #fff;
-  animation: cheer 1.8s ease both;
+  animation: cheer 1.6s ease both;
 }
 @keyframes cheer {
   0% { transform: scale(.2) rotate(-20deg); opacity: 0; }
