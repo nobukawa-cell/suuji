@@ -172,24 +172,25 @@ function burst(x = innerWidth / 2, y = innerHeight / 2, n = 16) {
 function celebrate() {
   sfx.fanfare();
   const chars = ['🌸', '⭐', '💖', '🌷', '✨', '💜', '🌟', '🦄', '🌈', '🎀', '💐', '🩷'];
+  // 上から降ってくる（速さは vy と g。大きくすると速くなる）
   for (let i = 0; i < 90; i++) {
-    FX.add({ x: Math.random() * innerWidth, y: -40 - Math.random() * innerHeight * .9,
-             vx: (Math.random() - .5) * 60, vy: 110 + Math.random() * 170, g: 25,
-             rot: Math.random() * 6, vr: (Math.random() - .5) * 3, sway: 2 + Math.random() * 3,
-             life: 6, size: 28 + rnd(26), ch: pick(chars) });
+    FX.add({ x: Math.random() * innerWidth, y: -40 - Math.random() * innerHeight * .6,
+             vx: (Math.random() - .5) * 120, vy: 420 + Math.random() * 300, g: 500,
+             rot: Math.random() * 6, vr: (Math.random() - .5) * 6, sway: 3 + Math.random() * 4,
+             life: 2.6, size: 28 + rnd(26), ch: pick(chars) });
   }
   // 左右の下からも、ぽーんと吹き上がる
   [0.08, 0.92].forEach(fx => {
     for (let i = 0; i < 22; i++) {
-      const a = -Math.PI / 2 + (fx < .5 ? .35 : -.35) + (Math.random() - .5) * .7, s = 520 + Math.random() * 380;
-      FX.add({ x: innerWidth * fx, y: innerHeight + 10, vx: Math.cos(a) * s, vy: Math.sin(a) * s, g: 600, rot: 0,
-               vr: (Math.random() - .5) * 8, life: 3, size: 26 + rnd(20), ch: pick(chars) });
+      const a = -Math.PI / 2 + (fx < .5 ? .35 : -.35) + (Math.random() - .5) * .7, s = 700 + Math.random() * 450;
+      FX.add({ x: innerWidth * fx, y: innerHeight + 10, vx: Math.cos(a) * s, vy: Math.sin(a) * s, g: 1100, rot: 0,
+               vr: (Math.random() - .5) * 10, life: 2.2, size: 26 + rnd(20), ch: pick(chars) });
     }
   });
   const ct = $('#cheerText');
   ct.textContent = pick(['🌸 はなまる 🌸', '⭐ すごーい ⭐', '💖 かんぺき 💖', '🦄 やったね 🦄']);
   const ch = $('#cheer'); ch.classList.remove('on'); void ch.offsetWidth; ch.classList.add('on');
-  clearTimeout(celebrate.tm); celebrate.tm = setTimeout(() => ch.classList.remove('on'), 2700);
+  clearTimeout(celebrate.tm); celebrate.tm = setTimeout(() => ch.classList.remove('on'), 1900);
 }
 
 // ===== 星とハート =====
@@ -212,7 +213,7 @@ function good(then, at) {
   if (at) burst(at.x, at.y); else burst();
   if (streak % CFG.bigEvery === 0) {
     setTimeout(() => { if (s !== sess) return; celebrate(); speak(['yatta4', praiseKey()], { delay: 400, onDone: () => setTimeout(next, 900) }); }, 300);
-    setTimeout(hud, 3200);
+    setTimeout(hud, 2400);
   } else {
     speak([praiseKey()], { delay: 280, onDone: () => setTimeout(next, 450) });
   }
