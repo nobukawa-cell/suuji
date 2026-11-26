@@ -1,14 +1,16 @@
 // オフラインで動かすための仕組み（サービスワーカー）。
 // 一度ひらいたときに下のファイルを iPhone/iPad の中に保存し、次からはネット無しでも動く。
 // ★ファイルを直して公開したら、CACHE の番号を1つ上げること（上げないと古いまま残ることがある）
-const CACHE = 'suuji-v3';
+const CACHE = 'suuji-v4';
 const FILES = [
   './', 'index.html', 'app.css', 'app.js', 'voices.js', 'digits.js', 'pictures.js',
   'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
+  // cache:'reload' … ブラウザの古い控えではなく、必ずサーバーから最新を取ってきて保存する
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(f => new Request(f, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
