@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>すうじであそぼ</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#eadcff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="すうじであそぼ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="app.css?v=1">
+</head>
+<body data-mode="home">
+
+<div id="home">
+  <div id="homeHead">
+    <span class="deco">🦄</span>
+    <h1>すうじであそぼ</h1>
+    <span class="deco">🌈</span>
+  </div>
+  <div id="cards"></div>
+  <div id="homeFoot">
+    <button id="homeSpeak" class="round" aria-label="きく">🔊</button>
+    <div class="pill">⭐ <b id="homeStarNum">0</b></div>
+  </div>
+</div>
+
+<div id="play">
+  <header id="bar">
+    <button id="homeBtn" class="round" aria-label="おうち">🏠</button>
+    <div id="title"><span id="modeIcon"></span><span id="modeTitle"></span><span id="badge"></span></div>
+    <button id="sayBtn" class="round" aria-label="もういちど きく">🔊</button>
+    <div id="hearts" class="pill" aria-label="あと すこしで はなまる"></div>
+    <div class="pill">⭐ <b id="starNum">0</b></div>
+  </header>
+  <main id="stage"></main>
+</div>
+
+<div id="cheer"><div id="cheerText"></div></div>
+<canvas id="fx"></canvas>
+<svg id="measure" width="0" height="0" aria-hidden="true"><path id="mpath"/></svg>
+
+<script src="voices.js?v=1"></script>
+<script src="digits.js?v=1"></script>
+<script src="pictures.js?v=1"></script>
+<script src="app.js?v=1"></script>
+</body>
+</html>
